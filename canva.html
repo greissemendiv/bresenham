@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Algoritmo de Bressenham</title>
+</head>
+<body>
+
+  <h1>Línea de Bressenham</h1>
+
+  <div id="controles">
+    <label>x0: <input type="number" id="x0" value="1" /></label>
+    <label>y0: <input type="number" id="y0" value="1" /></label>
+    <label>x1: <input type="number" id="x1" value="8" /></label>
+    <label>y1: <input type="number" id="y1" value="5" /></label>
+    <button id="btnDibujar">Dibujar</button>
+  </div>
+
+  <canvas id="canvas" width="500" height="500"></canvas>
+
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Paso</th>
+        <th>x</th>
+        <th>y</th>
+        <th>err</th>
+        <th>e2</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpoTabla">
+    </tbody>
+  </table>
+
+  <script src="script.js"></script>
+</body>
+</html>
