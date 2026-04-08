@@ -1,0 +1,96 @@
+/* Reset básico y tipografía */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Courier New', monospace;
+  background: #0f0f1a;
+  color: #e0e0f0;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  color: #7fdbff;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Fila de controles de entrada */
+#controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+#controles label {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+#controles input[type="number"] {
+  width: 60px;
+  padding: 4px 8px;
+  background: #1e1e2e;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+  margin-left: 4px;
+  font-family: monospace;
+}
+
+#controles button {
+  padding: 6px 20px;
+  background: #1a5f7a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+#controles button:hover {
+  background: #2980a0;
+}
+
+/* Canvas con borde visible */
+#canvas {
+  border: 1px solid #333;
+  display: block;
+  background: #12121f;
+  margin-bottom: 24px;
+}
+
+/* Tabla de pasos */
+#tabla {
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+#tabla th {
+  background: #1a1a2e;
+  color: #7fdbff;
+  padding: 6px 12px;
+  text-align: center;
+  border: 1px solid #333;
+}
+
+#tabla td {
+  padding: 4px 12px;
+  text-align: center;
+  border: 1px solid #222;
+  color: #ccc;
+}
+
+#tabla tbody tr:nth-child(even) {
+  background: #16162a;
+}
