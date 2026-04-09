@@ -1,24 +1,46 @@
-/**
- * Lee y valida las coordenadas ingresadas en el formulario HTML.
- * @returns {{x0,y0,x1,y1}|null} Objeto con coordenadas o null si hay error.
- */
-function leerCoordenadas() {
-  // Obtener los valores de los inputs y convertirlos a entero
-  const x0 = parseInt(document.getElementById('x0').value, 10);
-  const y0 = parseInt(document.getElementById('y0').value, 10);
-  const x1 = parseInt(document.getElementById('x1').value, 10);
-  const y1 = parseInt(document.getElementById('y1').value, 10);
 
-  // Verificar que todos sean números válidos
-  if (isNaN(x0) || isNaN(y0) || isNaN(x1) || isNaN(y1)) {
-    alert('Por favor ingresa valores numéricos enteros en todos los campos.');
-    return null;
+
+document.getElementById('btnDibujar').addEventListener('click', function () {
+  const coords = leerCoordenadas();
+  if (coords === null) return;
+
+  const { x0, y0, x1, y1 } = coords;
+
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+
+  // Limpiar el canvas antes de dibujar
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Calcular rango de coordenadas con un pequeño margen de 1 unidad
+  const xMin = Math.min(x0, x1) - 1;
+  const xMax = Math.max(x0, x1) + 1;
+  const yMin = Math.min(y0, y1) - 1;
+  const yMax = Math.max(y0, y1) + 1;
+
+  // Crear transformación de coordenadas
+  const transf = crearTransformacion(canvas, xMin, xMax, yMin, yMax);
+
+  /**
+   * Función plot: dibuja un píxel lógico (x,y) en el canvas
+   * como un rectángulo relleno del tamaño de una celda.
+   * @param {number} x - Coordenada lógica X.
+   * @param {number} y - Coordenada lógica Y.
+   */
+  function plot(x, y) {
+    const { px, py } = transf.toPixel(x, y);
+    ctx.fillStyle = '#7fdbff';  // Color azul-cian para los píxeles de la línea
+    ctx.fillRect(
+      px - transf.escalaX / 2,  // Esquina superior izquierda de la celda
+      py - transf.escalaY / 2,
+      transf.escalaX - 1,       // Dejar 1px de separación entre celdas
+      transf.escalaY - 1
+    );
   }
 
-  return { x0, y0, x1, y1 };
-}
-
-// Escuchar el clic del botón
+  // Ejecutar el algoritmo de Bresenham
+  bresenham(x0, y0, x1, y1, plot);
+});// Escuchar el clic del botón
 document.getElementById('btnDibujar').addEventListener('click', function () {
   const coords = leerCoordenadas();
   if (coords === null) return; // Salir si hay error
@@ -101,6 +123,7 @@ function bresenhamConRegistro(x0, y0, x1, y1) {
 
   return pasos;
 }
+
 
 // Márgenes reservados para los ejes numéricos (izquierda e inferior)
 const MARGEN_IZQ  = 50;  // píxeles para el eje Y (números a la izquierda)
