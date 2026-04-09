@@ -101,3 +101,50 @@ function bresenhamConRegistro(x0, y0, x1, y1) {
 
   return pasos;
 }
+
+// Márgenes reservados para los ejes numéricos (izquierda e inferior)
+const MARGEN_IZQ  = 50;  // píxeles para el eje Y (números a la izquierda)
+const MARGEN_INF  = 40;  // píxeles para el eje X (números abajo)
+const MARGEN_TOP  = 20;  // pequeño margen superior
+const MARGEN_DER  = 20;  // pequeño margen derecho
+
+/**
+ * Calcula los parámetros de transformación para mapear coordenadas
+ * lógicas (del usuario) al espacio de píxeles disponible en el canvas.
+ *
+ * La transformación considera los márgenes reservados para los ejes
+ * numéricos y mantiene la proporción 1:1 entre X e Y.
+ *
+ * @param {HTMLCanvasElement} canvas - El elemento canvas.
+ * @param {number} xMin - Valor lógico mínimo en X.
+ * @param {number} xMax - Valor lógico máximo en X.
+ * @param {number} yMin - Valor lógico mínimo en Y.
+ * @param {number} yMax - Valor lógico máximo en Y.
+ * @returns {{ toPixel: Function }} Objeto con función de conversión.
+ */
+function crearTransformacion(canvas, xMin, xMax, yMin, yMax) {
+  // Área de dibujo disponible (descontando márgenes)
+  const anchoUtil = canvas.width  - MARGEN_IZQ - MARGEN_DER;
+  const altoUtil  = canvas.height - MARGEN_INF - MARGEN_TOP;
+
+  // Escala: cuántos píxeles corresponden a 1 unidad lógica
+  const escalaX = anchoUtil / (xMax - xMin + 1);
+  const escalaY = altoUtil  / (yMax - yMin + 1);
+
+  /**
+   * Convierte un punto en coordenadas lógicas a píxeles del canvas.
+   * El eje Y se invierte porque en canvas Y crece hacia abajo,
+   * pero en matemáticas Y crece hacia arriba.
+   * @param {number} x - Coordenada lógica X.
+   * @param {number} y - Coordenada lógica Y.
+   * @returns {{px: number, py: number}} Posición en píxeles.
+   */
+  function toPixel(x, y) {
+    const px = MARGEN_IZQ + (x - xMin) * escalaX + escalaX / 2;
+    // Invertir Y: yMax queda arriba, yMin queda abajo
+    const py = MARGEN_TOP + (yMax - y) * escalaY + escalaY / 2;
+    return { px, py };
+  }
+
+  return { toPixel, escalaX, escalaY, xMin, xMax, yMin, yMax };
+}
