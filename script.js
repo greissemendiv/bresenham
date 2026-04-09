@@ -60,6 +60,15 @@ document.getElementById('btnDibujar').addEventListener('click', function () {
   dibujarEjes(ctx, transf);
   // Llenar la tabla de pasos
   llenarTabla(x0, y0, x1, y1);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // ... (crear transf igual que antes)
+
+  dibujarCuadricula(ctx, transf);   // 1. Cuadrícula (fondo)
+  dibujarEjes(ctx, transf);         // 2. Ejes numéricos
+  bresenham(x0, y0, x1, y1, plot);  // 3. Línea
+  marcarPunto(ctx, transf, x0, y0, '#44ff88', 'P0');  // 4. Punto inicial
+  marcarPunto(ctx, transf, x1, y1, '#ff4466', 'P1');  // 5. Punto final
+  llenarTabla(x0, y0, x1, y1);     // 6. Tabla
 
   // Ejecutar el algoritmo de Bresenham
   bresenham(x0, y0, x1, y1, plot);
@@ -68,8 +77,6 @@ document.getElementById('btnDibujar').addEventListener('click', function () {
   const coords = leerCoordenadas();
   if (coords === null) return; // Salir si hay error
 
-  // Confirmación temporal en consola (se reemplazará en siguientes commits)
-  console.log('Coordenadas leídas:', coords);
 })
 
 
@@ -297,3 +304,116 @@ function llenarTabla(x0, y0, x1, y1) {
     tbody.appendChild(fila);
   });
 }
+
+/**
+ * Dibuja una cuadrícula gris de fondo alineada con las celdas lógicas.
+ * Debe llamarse ANTES de dibujar la línea para que quede por debajo.
+ *
+ * @param {CanvasRenderingContext2D} ctx - Contexto 2D del canvas.
+ * @param {{ toPixel, escalaX, escalaY, xMin, xMax, yMin, yMax }} transf
+ *   - Objeto de transformación.
+ */
+function dibujarCuadricula(ctx, transf) {
+  ctx.strokeStyle = '#1e1e30';  // Líneas muy sutiles para la cuadrícula
+  ctx.lineWidth   = 0.5;
+
+  // Líneas verticales (una por cada valor de X)
+  for (let x = transf.xMin; x <= transf.xMax + 1; x++) {
+    const { px } = transf.toPixel(x - 0.5, transf.yMin);
+    ctx.beginPath();
+    ctx.moveTo(px, MARGEN_TOP);
+    ctx.lineTo(px, ctx.canvas.height - MARGEN_INF);
+    ctx.stroke();
+  }
+
+  // Líneas horizontales (una por cada valor de Y)
+  for (let y = transf.yMin; y <= transf.yMax + 1; y++) {
+    const { py } = transf.toPixel(transf.xMin, y - 0.5);
+    ctx.beginPath();
+    ctx.moveTo(MARGEN_IZQ, py);
+    ctx.lineTo(ctx.canvas.width - MARGEN_DER, py);
+    ctx.stroke();
+  }
+}
+
+/**
+ * Dibuja un marcador circular sobre un punto lógico para resaltarlo.
+ * Se usa para indicar el punto inicial (verde) y final (rojo).
+ *
+ * @param {CanvasRenderingContext2D} ctx - Contexto 2D del canvas.
+ * @param {{ toPixel }} transf - Objeto de transformación.
+ * @param {number} x      - Coordenada lógica X del punto.
+ * @param {number} y      - Coordenada lógica Y del punto.
+ * @param {string} color  - Color CSS del marcador.
+ * @param {string} etiq   - Etiqueta pequeña a mostrar ('P0' o 'P1').
+ */
+function marcarPunto(ctx, transf, x, y, color, etiq) {
+  const { px, py } = transf.toPixel(x, y);
+  const r = Math.min(transf.escalaX, transf.escalaY) * 0.35;
+
+  // Círculo exterior
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 2;
+  ctx.stroke();
+
+  // Etiqueta pequeña
+  ctx.fillStyle    = color;
+  ctx.font         = '9px monospace';
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(etiq, px, py - r - 2);
+}
+
+/**
+ * Limpia el canvas y la tabla, y restaura los valores por defecto
+ * de los inputs de coordenadas.
+ */
+function resetear() {
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('cuerpoTabla').innerHTML = '';
+  document.getElementById('x0').value = '1';
+  document.getElementById('y0').value = '1';
+  document.getElementById('x1').value = '8';
+  document.getElementById('y1').value = '5';
+}
+
+// ── Evento principal ──────────────────────────────────────────
+
+document.getElementById('btnDibujar').addEventListener('click', function () {
+  const coords = leerCoordenadas();
+  if (coords === null) return;
+
+  const { x0, y0, x1, y1 } = coords;
+  const canvas = document.getElementById('canvas');
+  const ctx    = canvas.getContext('2d');
+
+  ajustarCanvas();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const xMin  = Math.min(x0, x1) - 1;
+  const xMax  = Math.max(x0, x1) + 1;
+  const yMin  = Math.min(y0, y1) - 1;
+  const yMax  = Math.max(y0, y1) + 1;
+  const transf = crearTransformacion(canvas, xMin, xMax, yMin, yMax);
+
+  // Dibujar fondo y ejes
+  dibujarCuadricula(ctx, transf);
+  dibujarEjes(ctx, transf);
+
+  // Obtener todos los pasos y llenar la tabla
+  const pasos = bresenhamConRegistro(x0, y0, x1, y1);
+  llenarTabla(pasos);
+
+  // Animar la línea píxel a píxel
+  dibujarAnimado(ctx, transf, pasos, x0, y0, x1, y1, 100);
+});
+
+document.getElementById('btnReset').addEventListener('click', resetear);
+
+// Ajustar canvas al cargar
+window.addEventListener('load', ajustarCanvas);
+window.addEventListener('resize', ajustarCanvas);
