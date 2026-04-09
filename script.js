@@ -1,4 +1,22 @@
+/**
+ * Lee y valida las coordenadas ingresadas en el formulario HTML.
+ * @returns {{x0,y0,x1,y1}|null} Objeto con coordenadas o null si hay error.
+ */
+function leerCoordenadas() {
+  // Obtener los valores de los inputs y convertirlos a entero
+  const x0 = parseInt(document.getElementById('x0').value, 10);
+  const y0 = parseInt(document.getElementById('y0').value, 10);
+  const x1 = parseInt(document.getElementById('x1').value, 10);
+  const y1 = parseInt(document.getElementById('y1').value, 10);
 
+  // Verificar que todos sean números válidos
+  if (isNaN(x0) || isNaN(y0) || isNaN(x1) || isNaN(y1)) {
+    alert('Por favor ingresa valores numéricos enteros en todos los campos.');
+    return null;
+  }
+
+  return { x0, y0, x1, y1 };
+}
 
 document.getElementById('btnDibujar').addEventListener('click', function () {
   const coords = leerCoordenadas();
@@ -170,4 +188,71 @@ function crearTransformacion(canvas, xMin, xMax, yMin, yMax) {
   }
 
   return { toPixel, escalaX, escalaY, xMin, xMax, yMin, yMax };
+}
+
+/**
+ * Dibuja las marcas de escala numérica en los ejes del canvas.
+ * Eje Y en el lado izquierdo, eje X en el lado inferior.
+ * Las marcas se alinean con las celdas de la cuadrícula lógica.
+ *
+ * @param {CanvasRenderingContext2D} ctx - Contexto 2D del canvas.
+ * @param {{ toPixel, escalaX, escalaY, xMin, xMax, yMin, yMax }} transf
+ *   - Objeto de transformación generado por crearTransformacion().
+ */
+function dibujarEjes(ctx, transf) {
+  ctx.fillStyle   = '#888';   // Color gris para etiquetas de eje
+  ctx.strokeStyle = '#333';   // Color gris oscuro para líneas de marca
+  ctx.font        = '10px monospace';
+  ctx.textAlign   = 'right';
+  ctx.textBaseline = 'middle';
+
+  // ── Eje Y: marcas en el lado izquierdo ──
+  for (let y = transf.yMin; y <= transf.yMax; y++) {
+    const { py } = transf.toPixel(transf.xMin, y);
+
+    // Pequeña línea horizontal como marca de escala
+    ctx.beginPath();
+    ctx.moveTo(MARGEN_IZQ - 4, py);
+    ctx.lineTo(MARGEN_IZQ, py);
+    ctx.stroke();
+
+    // Etiqueta numérica
+    ctx.fillText(y, MARGEN_IZQ - 6, py);
+  }
+
+  // ── Eje X: marcas en el lado inferior ──
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'top';
+
+  const yInferior = ctx.canvas.height - MARGEN_INF + 4;  // Posición Y de las etiquetas
+
+  for (let x = transf.xMin; x <= transf.xMax; x++) {
+    const { px } = transf.toPixel(x, transf.yMin);
+
+    // Pequeña línea vertical como marca de escala
+    ctx.beginPath();
+    ctx.moveTo(px, ctx.canvas.height - MARGEN_INF);
+    ctx.lineTo(px, ctx.canvas.height - MARGEN_INF + 4);
+    ctx.stroke();
+
+    // Etiqueta numérica
+    ctx.fillStyle = '#888';
+    ctx.fillText(x, px, yInferior);
+  }
+
+  // ── Líneas de eje principales ──
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth   = 1;
+
+  // Línea vertical del eje Y
+  ctx.beginPath();
+  ctx.moveTo(MARGEN_IZQ, MARGEN_TOP);
+  ctx.lineTo(MARGEN_IZQ, ctx.canvas.height - MARGEN_INF);
+  ctx.stroke();
+
+  // Línea horizontal del eje X
+  ctx.beginPath();
+  ctx.moveTo(MARGEN_IZQ, ctx.canvas.height - MARGEN_INF);
+  ctx.lineTo(ctx.canvas.width - MARGEN_DER, ctx.canvas.height - MARGEN_INF);
+  ctx.stroke();
 }
