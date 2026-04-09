@@ -56,6 +56,11 @@ document.getElementById('btnDibujar').addEventListener('click', function () {
     );
   }
 
+  // Dibujar ejes ANTES de la línea
+  dibujarEjes(ctx, transf);
+  // Llenar la tabla de pasos
+  llenarTabla(x0, y0, x1, y1);
+
   // Ejecutar el algoritmo de Bresenham
   bresenham(x0, y0, x1, y1, plot);
 });// Escuchar el clic del botón
@@ -66,6 +71,7 @@ document.getElementById('btnDibujar').addEventListener('click', function () {
   // Confirmación temporal en consola (se reemplazará en siguientes commits)
   console.log('Coordenadas leídas:', coords);
 })
+
 
 /**
  * Implementación del algoritmo de líneas de Bresenham.
@@ -255,4 +261,39 @@ function dibujarEjes(ctx, transf) {
   ctx.moveTo(MARGEN_IZQ, ctx.canvas.height - MARGEN_INF);
   ctx.lineTo(ctx.canvas.width - MARGEN_DER, ctx.canvas.height - MARGEN_INF);
   ctx.stroke();
+}
+
+// ─────────────────────────────────────────────────────────
+// Commit #8: generar la tabla HTML con los pasos del algoritmo.
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Rellena la tabla HTML con los datos paso a paso del algoritmo.
+ * Obtiene los estados internos usando bresenhamConRegistro() y
+ * construye una fila <tr> por cada iteración.
+ *
+ * @param {number} x0 - Coordenada X inicial.
+ * @param {number} y0 - Coordenada Y inicial.
+ * @param {number} x1 - Coordenada X final.
+ * @param {number} y1 - Coordenada Y final.
+ */
+function llenarTabla(x0, y0, x1, y1) {
+  const pasos  = bresenhamConRegistro(x0, y0, x1, y1);
+  const tbody  = document.getElementById('cuerpoTabla');
+
+  // Limpiar filas anteriores
+  tbody.innerHTML = '';
+
+  // Crear una fila por cada paso registrado
+  pasos.forEach(function (p) {
+    const fila = document.createElement('tr');
+    fila.innerHTML = `
+      <td>${p.paso}</td>
+      <td>${p.x}</td>
+      <td>${p.y}</td>
+      <td>${p.err}</td>
+      <td>${p.e2}</td>
+    `;
+    tbody.appendChild(fila);
+  });
 }
